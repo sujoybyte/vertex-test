@@ -10,6 +10,7 @@ public class Manager : MonoBehaviour
 	private Shape _currentShape;
 	private Shape _newShape;
 
+	private float _shapePositionZ = 0f;
 	private bool _isShapeCompleted = false;
 	private bool _isShapeCopied = false;
 	private bool _isShapeReset = false;
@@ -61,7 +62,8 @@ public class Manager : MonoBehaviour
 		if (isMouseNotOverUI && _isShapeCopied)
 		{
 			Vector3 worldPosition = _camera.ScreenToWorldPoint(Input.mousePosition);
-			worldPosition = new Vector3(worldPosition.x, worldPosition.y, -0.1f);
+			worldPosition = new Vector3(worldPosition.x, worldPosition.y,
+				_newShape.Polygon.Object.transform.position.z);
 
 			_newShape.Polygon.Object.transform.position = worldPosition;
 		}
@@ -73,15 +75,18 @@ public class Manager : MonoBehaviour
 
 		SetShape(_currentShape, _currentShape.Vertices, true);
 		_currentShape.Polygon.SetColor(Color.black);
+
 		_isShapeCompleted = true;
 	}
 
 	public void Copy()
 	{
-		if (!_isShapeCompleted) return;
+		if (!_isShapeCompleted || _isShapeReset) return;
 
 		CreateShape(false);
 		SetShape(_newShape, _currentShape.Vertices);
+		_newShape.Polygon.SetColor(Color.black);
+
 		_isShapeCopied = true;
 	}
 
@@ -94,13 +99,17 @@ public class Manager : MonoBehaviour
 			Destroy(_shapeParent.transform.GetChild(i).gameObject);
 		}
 
+		_shapePositionZ = 0f;
 		_isShapeReset = true;
 	}
 
 	private void CreateShape(bool isCurrentNew = true)
 	{
+		_shapePositionZ -= 0.1f;
+
 		_newShape = new Shape();
 		_newShape.Polygon.Object.transform.parent = _shapeParent.transform;
+		_newShape.Polygon.Object.transform.position += new Vector3(0f, 0f, _shapePositionZ);
 		_currentShape = isCurrentNew ? _newShape : _currentShape;
 
 		_shapes.Add(_newShape);
